@@ -58,7 +58,7 @@ inductive Context : Type
 | Empty : Context
 | Cons : String -> Types -> Context -> Context
 
-inductive Judgement : Type
+inductive Judgement : Context → Terms → Types → Type
 | Var : ∀ {Γ : Context} {x : String} {A : Types}, Context → Terms → Types →  Judgement Γ (Terms.Var x A) A
 | Abs : ∀ {Γ : Context} {x : String} {A : Types} {e : Terms} {B : Types}, Judgement (Context.Cons x A Γ) e B → Judgement Γ (Terms.Abs x A e) (Types.Arrow A B)
 | App : ∀ {Γ : Context} {e1 e2 : Terms} {A B : Types}, Judgement Γ e1 (Types.Arrow A B) → Judgement Γ e2 A → Judgement Γ (Terms.App e1 e2) B
