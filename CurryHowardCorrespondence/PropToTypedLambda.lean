@@ -41,7 +41,7 @@ def TranslateProofToTerm : Proof → Terms
   | Formula.Impl f1 _ => Terms.Abs (FormulaNamig f1) (FormulaTyping f1) (TranslateProofToTerm p)
   | _ => Terms.EmptyElim (Terms.Var "Error" Types.Empty) (Terms.Var "Error" Types.Empty)
 | Proof.ImplElim _ p q => Terms.App (TranslateProofToTerm p) (TranslateProofToTerm q)
-| Proof.FalsumElim _ p => Terms.EmptyElim (TranslateProofToTerm p) (Terms.Var (FormulaNamig f) (FormulaTyping f))
+| Proof.FalsumElim f p => Terms.EmptyElim (TranslateProofToTerm p) (Terms.Var (FormulaNamig f) (FormulaTyping f))
 
 -- simple example of A ⊢ A to a : A^a ⊢ a : A
 -- def example1 : Formula := Formula.Var (PropVar.fromString "A")
