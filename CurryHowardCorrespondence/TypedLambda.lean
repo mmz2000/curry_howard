@@ -72,7 +72,7 @@ def Terms.GetIsInhabitant : Context → Terms → Types → Bool
 | Γ, Terms.Abs x A e, Types.Arrow B C => EqualTypes A B && (Terms.GetIsInhabitant (Context.Cons x A Γ) e C || A == Types.Empty)
 | Γ, Terms.App e1 e2, C => match e1 with
                           | Terms.Abs x A _ => Terms.GetIsInhabitant Γ e2 A && Terms.GetIsInhabitant (Context.Cons x A Γ) e1 (Types.Arrow A C)
-                          | _ => True
+                          | _ => false
 | Γ, Terms.Pair e1 e2, Types.Touples A B => Terms.GetIsInhabitant Γ e1 A && Terms.GetIsInhabitant Γ e2 B
 | Γ, Terms.Fst e, A => match e with
                       | Terms.Pair e1 _ => Terms.GetIsInhabitant Γ e1 A
