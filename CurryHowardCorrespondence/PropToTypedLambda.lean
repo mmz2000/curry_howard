@@ -27,9 +27,9 @@ def TranslateTheoryToContext : List Formula →  Context
 
 def TranslateProofToTerm : Proof → Terms
 | Proof.Axiom f => Terms.Var (FormulaNamig f) (FormulaTyping f)
-| Proof.AndIntro f p q => Terms.Pair (TranslateProofToTerm p) (TranslateProofToTerm q)
-| Proof.AndElim1 f p => Terms.Fst (TranslateProofToTerm p)
-| Proof.AndElim2 f p => Terms.Snd (TranslateProofToTerm p)
+| Proof.AndIntro _ p q => Terms.Pair (TranslateProofToTerm p) (TranslateProofToTerm q)
+| Proof.AndElim1 _ p => Terms.Fst (TranslateProofToTerm p)
+| Proof.AndElim2 _ p => Terms.Snd (TranslateProofToTerm p)
 | Proof.OrIntro1 f p => match f with
   | Formula.Or f1 _ => Terms.Inl (TranslateProofToTerm p) (FormulaTyping f1) (FormulaTyping f)
   | _ => Terms.EmptyElim (Terms.Var "Error" Types.Empty) (Terms.Var "Error" Types.Empty)
