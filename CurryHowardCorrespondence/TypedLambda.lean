@@ -68,18 +68,28 @@ def Context.getTypeOf : Context →  String → Option Types
 def Terms.GetIsInhabitant : Context → Terms → Types → Bool
 | Γ, Terms.Var x A, B => match Context.getTypeOf Γ x with
                         | some C => EqualTypes A C && EqualTypes A B
-                        | none => false
+                        | none => B == Types.Empty
 | Γ, Terms.Abs x A e, Types.Arrow B C => EqualTypes A B && (Terms.GetIsInhabitant (Context.Cons x A Γ) e C || A == Types.Empty)
 | Γ, Terms.App t e1 e2, C => match e1 with
                           | Terms.Abs x A _ => Terms.GetIsInhabitant Γ e2 A && Terms.GetIsInhabitant (Context.Cons x A Γ) e1 (Types.Arrow A C) && EqualTypes t C
-                          | _ => false
+                          | _ => C == Types.Empty
 | Γ, Terms.Pair t e1 e2, Types.Touples A B => Terms.GetIsInhabitant Γ e1 A && Terms.GetIsInhabitant Γ e2 B && EqualTypes t (Types.Touples A B)
-| Γ, Terms.Fst _ e, A => match e with
-                      | Terms.Pair _ e1 _ => Terms.GetIsInhabitant Γ e1 A
-                      | _ => false
-| Γ, Terms.Snd _ e, B => match e with
-                      | Terms.Pair _ _ e2 => Terms.GetIsInhabitant Γ e2 B
-                      | _ => false
+| Γ, Terms.Fst t e, A => match e with
+                      | Terms.Pair t' e1 _ => Terms.GetIsInhabitant Γ e1 A && match t' with
+                                                                  | Types.Touples C _ => EqualTypes A C
+                                                                  | _ => A == Types.Empty
+                      | Terms.Var x L => match Context.getTypeOf Γ x with
+                            | some (Types.Touples C B) => L == (Types.Touples C B) && EqualTypes A C && EqualTypes t A
+                            | _ => A == Types.Empty
+                      | _ => A == Types.Empty
+| Γ, Terms.Snd t e, B => match e with
+                      | Terms.Pair t' _ e2 => Terms.GetIsInhabitant Γ e2 B && match t' with
+                                                                  | Types.Touples _ C => EqualTypes B C
+                                                                  | _ => B == Types.Empty
+                          | Terms.Var x L => match Context.getTypeOf Γ x with
+                            | some (Types.Touples A C) => L == (Types.Touples A C) && EqualTypes B C && EqualTypes t B
+                            | _ => B == Types.Empty
+                      | _ => B == Types.Empty
 | Γ, Terms.Inl e A B, Types.Either C D => Terms.GetIsInhabitant Γ e A && EqualTypes A C && EqualTypes B D
 | Γ, Terms.Inr e A B, Types.Either C D => Terms.GetIsInhabitant Γ e B && EqualTypes A C && EqualTypes B D
 | Γ, Terms.Case t e e1 e2, C => match e with
@@ -87,11 +97,11 @@ def Terms.GetIsInhabitant : Context → Terms → Types → Bool
                             | Terms.Inr e' A B => Terms.GetIsInhabitant Γ e1 (Types.Arrow A C) && Terms.GetIsInhabitant Γ e2 (Types.Arrow B C) && Terms.GetIsInhabitant Γ e' B && EqualTypes t C
                             | Terms.Var x L => match Context.getTypeOf Γ x with
                                   | some (Types.Either A B) => Terms.GetIsInhabitant Γ e1 (Types.Arrow A C) && Terms.GetIsInhabitant Γ e2 (Types.Arrow B C) && L == (Types.Either A B)
-                                  | _ => false
-                            | _ => false
+                                  | _ => C == Types.Empty
+                            | _ => C == Types.Empty
 | _, Terms.Unit, Types.Unit => true
 | Γ, Terms.EmptyElim _ e1 _, _ => Terms.GetIsInhabitant Γ e1 Types.Empty
-| _, _, _ => false
+| _, _, t => t == Types.Empty
 
 -- simple example of x: A ⊢ x : A
 
