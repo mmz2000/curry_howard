@@ -42,12 +42,3 @@ def TranslateProofToTerm : Proof → Terms
   | _ => Terms.EmptyElim (Types.Empty) (Terms.Var "Error" Types.Empty) (Terms.Var "Error" Types.Empty)
 | Proof.ImplElim f p q => Terms.App (FormulaTyping f) (TranslateProofToTerm p) (TranslateProofToTerm q)
 | Proof.FalsumElim f p => Terms.EmptyElim (FormulaTyping f) (TranslateProofToTerm p) (Terms.Var (FormulaNamig f) (FormulaTyping f))
-
--- simple example of A ⊢ A to a : A^a ⊢ a : A
--- def example1 : Formula := Formula.Var (PropVar.fromString "A")
--- def example1Proof : Proof := Proof.Axiom example1
--- #eval example1Proof.toString
--- #eval (TranslateProofToTerm example1Proof).toString
-
--- #eval Proof.Check example1Proof [example1]
--- #eval Terms.GetIsInhabitant (TranslateTheoryToContext [example1]) (TranslateProofToTerm example1Proof) (FormulaTyping example1)
