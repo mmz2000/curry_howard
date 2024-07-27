@@ -100,7 +100,7 @@ def Proof.Check : Proof → List Formula → Bool
   | Formula.Or _ f2 => f2 == p.getFormula
   | _ => false
 | Proof.OrElim f p q r, fs =>Proof.Check r fs && match getFormula r with
-  | Formula.Or f1 f2 => Proof.Check p (fs.append ([f1])) && Proof.Check q (fs.append ([f2])) && f == getFormula p && f == getFormula q
+  | Formula.Or f1 f2 => Proof.Check p (fs.append ([f1])) && Proof.Check q (fs.append ([f2])) && (f == getFormula p || Formula.Impl f1 f == getFormula p) && (f == getFormula q || Formula.Impl f2 f == getFormula q)
   | _ => false
 | Proof.ImplIntro f p, fs => match f with
   | Formula.Impl f1 f2 => Proof.Check p (fs.append ([f1])) && f2 == getFormula p

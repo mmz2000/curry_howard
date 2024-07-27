@@ -27,21 +27,21 @@ def TranslateTheoryToContext : List Formula →  Context
 
 def TranslateProofToTerm : Proof → Terms
 | Proof.Axiom f => Terms.Var (FormulaNamig f) (FormulaTyping f)
-| Proof.AndIntro _ p q => Terms.Pair (TranslateProofToTerm p) (TranslateProofToTerm q)
-| Proof.AndElim1 _ p => Terms.Fst (TranslateProofToTerm p)
-| Proof.AndElim2 _ p => Terms.Snd (TranslateProofToTerm p)
+| Proof.AndIntro f p q => Terms.Pair (FormulaTyping f) (TranslateProofToTerm p) (TranslateProofToTerm q)
+| Proof.AndElim1 f p => Terms.Fst (FormulaTyping f) (TranslateProofToTerm p)
+| Proof.AndElim2 f p => Terms.Snd (FormulaTyping f) (TranslateProofToTerm p)
 | Proof.OrIntro1 f p => match f with
   | Formula.Or f1 _ => Terms.Inl (TranslateProofToTerm p) (FormulaTyping f1) (FormulaTyping f)
-  | _ => Terms.EmptyElim (Terms.Var "Error" Types.Empty) (Terms.Var "Error" Types.Empty)
+  | _ => Terms.EmptyElim (Types.Empty) (Terms.Var "Error" Types.Empty) (Terms.Var "Error" Types.Empty)
 | Proof.OrIntro2 f p => match f with
   | Formula.Or _ f2 => Terms.Inr (TranslateProofToTerm p) (FormulaTyping f2) (FormulaTyping f)
-  | _ => Terms.EmptyElim (Terms.Var "Error" Types.Empty) (Terms.Var "Error" Types.Empty)
-| Proof.OrElim _ p q r => Terms.Case (TranslateProofToTerm p) (TranslateProofToTerm q) (TranslateProofToTerm r)
+  | _ => Terms.EmptyElim (Types.Empty) (Terms.Var "Error" Types.Empty) (Terms.Var "Error" Types.Empty)
+| Proof.OrElim f p q r => Terms.Case (FormulaTyping f) (TranslateProofToTerm p) (TranslateProofToTerm q) (TranslateProofToTerm r)
 | Proof.ImplIntro f p => match f with
   | Formula.Impl f1 _ => Terms.Abs (FormulaNamig f1) (FormulaTyping f1) (TranslateProofToTerm p)
-  | _ => Terms.EmptyElim (Terms.Var "Error" Types.Empty) (Terms.Var "Error" Types.Empty)
-| Proof.ImplElim _ p q => Terms.App (TranslateProofToTerm p) (TranslateProofToTerm q)
-| Proof.FalsumElim f p => Terms.EmptyElim (TranslateProofToTerm p) (Terms.Var (FormulaNamig f) (FormulaTyping f))
+  | _ => Terms.EmptyElim (Types.Empty) (Terms.Var "Error" Types.Empty) (Terms.Var "Error" Types.Empty)
+| Proof.ImplElim f p q => Terms.App (FormulaTyping f) (TranslateProofToTerm p) (TranslateProofToTerm q)
+| Proof.FalsumElim f p => Terms.EmptyElim (FormulaTyping f) (TranslateProofToTerm p) (Terms.Var (FormulaNamig f) (FormulaTyping f))
 
 -- simple example of A ⊢ A to a : A^a ⊢ a : A
 -- def example1 : Formula := Formula.Var (PropVar.fromString "A")

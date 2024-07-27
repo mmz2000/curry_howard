@@ -28,29 +28,29 @@ def Types.toString : Types → String
 inductive Terms : Type
 | Var : String -> Types -> Terms
 | Abs : String -> Types -> Terms -> Terms
-| App : Terms -> Terms -> Terms
-| Pair : Terms -> Terms -> Terms
-| Fst : Terms -> Terms
-| Snd : Terms -> Terms
+| App : Types -> Terms -> Terms -> Terms
+| Pair : Types -> Terms -> Terms -> Terms
+| Fst : Types -> Terms -> Terms
+| Snd : Types -> Terms -> Terms
 | Inl : Terms -> Types -> Types -> Terms
 | Inr : Terms -> Types -> Types -> Terms
-| Case : Terms -> Terms -> Terms -> Terms
+| Case : Types-> Terms -> Terms -> Terms -> Terms
 | Unit : Terms
-| EmptyElim : Terms ->  Terms -> Terms
+| EmptyElim : Types -> Terms ->  Terms -> Terms
 
 
 def Terms.toString : Terms → String
 | Terms.Var v t => v ++ " : " ++ t.toString
 | Terms.Abs v t e => "λ" ++ v ++ " : " ++ t.toString ++ " . " ++ e.toString
-| Terms.App e1 e2 => "(" ++ e1.toString ++ " " ++ e2.toString ++ ")"
-| Terms.Pair e1 e2 => "(" ++ e1.toString ++ ", " ++ e2.toString ++ ")"
-| Terms.Fst e => "fst " ++ e.toString
-| Terms.Snd e => "snd " ++ e.toString
+| Terms.App t e1 e2 => "(" ++ e1.toString ++ ")" ++ e2.toString ++ " : " ++ t.toString
+| Terms.Pair t e1 e2 => "(" ++ e1.toString ++ ", " ++ e2.toString ++ ")" ++ " : " ++ t.toString
+| Terms.Fst t e => "fst " ++ e.toString  ++ " : " ++ t.toString
+| Terms.Snd t e => "snd " ++ e.toString ++ " : " ++ t.toString
 | Terms.Inl e t1 t2 => "inl " ++ e.toString ++ " as " ++ t1.toString ++ " + " ++ t2.toString
 | Terms.Inr e t1 t2 => "inr " ++ e.toString ++ " as " ++ t1.toString ++ " + " ++ t2.toString
-| Terms.Case e1 e2 e3 => "case " ++ e1.toString ++ " of " ++ e2.toString ++ " | " ++ e3.toString
+| Terms.Case t e1 e2 e3 => "case " ++ e1.toString ++ " of " ++ e2.toString ++ " | " ++ e3.toString ++ " : " ++ t.toString
 | Terms.Unit => "()"
-| Terms.EmptyElim a b => "EmptyElim " ++ a.toString ++ " as " ++ b.toString
+| Terms.EmptyElim t a b => "EmptyElim " ++ a.toString ++ " as " ++ b.toString ++ " : " ++ t.toString
 
 inductive Context : Type
 | Empty : Context
@@ -70,27 +70,27 @@ def Terms.GetIsInhabitant : Context → Terms → Types → Bool
                         | some C => EqualTypes A C && EqualTypes A B
                         | none => false
 | Γ, Terms.Abs x A e, Types.Arrow B C => EqualTypes A B && (Terms.GetIsInhabitant (Context.Cons x A Γ) e C || A == Types.Empty)
-| Γ, Terms.App e1 e2, C => match e1 with
-                          | Terms.Abs x A _ => Terms.GetIsInhabitant Γ e2 A && Terms.GetIsInhabitant (Context.Cons x A Γ) e1 (Types.Arrow A C)
+| Γ, Terms.App t e1 e2, C => match e1 with
+                          | Terms.Abs x A _ => Terms.GetIsInhabitant Γ e2 A && Terms.GetIsInhabitant (Context.Cons x A Γ) e1 (Types.Arrow A C) && EqualTypes t C
                           | _ => false
-| Γ, Terms.Pair e1 e2, Types.Touples A B => Terms.GetIsInhabitant Γ e1 A && Terms.GetIsInhabitant Γ e2 B
-| Γ, Terms.Fst e, A => match e with
-                      | Terms.Pair e1 _ => Terms.GetIsInhabitant Γ e1 A
+| Γ, Terms.Pair t e1 e2, Types.Touples A B => Terms.GetIsInhabitant Γ e1 A && Terms.GetIsInhabitant Γ e2 B && EqualTypes t (Types.Touples A B)
+| Γ, Terms.Fst _ e, A => match e with
+                      | Terms.Pair _ e1 _ => Terms.GetIsInhabitant Γ e1 A
                       | _ => false
-| Γ, Terms.Snd e, B => match e with
-                      | Terms.Pair _ e2 => Terms.GetIsInhabitant Γ e2 B
+| Γ, Terms.Snd _ e, B => match e with
+                      | Terms.Pair _ _ e2 => Terms.GetIsInhabitant Γ e2 B
                       | _ => false
 | Γ, Terms.Inl e A B, Types.Either C D => Terms.GetIsInhabitant Γ e A && EqualTypes A C && EqualTypes B D
 | Γ, Terms.Inr e A B, Types.Either C D => Terms.GetIsInhabitant Γ e B && EqualTypes A C && EqualTypes B D
-| Γ, Terms.Case e e1 e2, C => match e with
-                            | Terms.Inl e' A B => Terms.GetIsInhabitant Γ e1 (Types.Arrow A C) && Terms.GetIsInhabitant Γ e2 (Types.Arrow B C) && Terms.GetIsInhabitant Γ e' A
-                            | Terms.Inr e' A B => Terms.GetIsInhabitant Γ e1 (Types.Arrow A C) && Terms.GetIsInhabitant Γ e2 (Types.Arrow B C) && Terms.GetIsInhabitant Γ e' B
+| Γ, Terms.Case t e e1 e2, C => match e with
+                            | Terms.Inl e' A B => Terms.GetIsInhabitant Γ e1 (Types.Arrow A C) && Terms.GetIsInhabitant Γ e2 (Types.Arrow B C) && Terms.GetIsInhabitant Γ e' A && EqualTypes t C
+                            | Terms.Inr e' A B => Terms.GetIsInhabitant Γ e1 (Types.Arrow A C) && Terms.GetIsInhabitant Γ e2 (Types.Arrow B C) && Terms.GetIsInhabitant Γ e' B && EqualTypes t C
                             | Terms.Var x L => match Context.getTypeOf Γ x with
                                   | some (Types.Either A B) => Terms.GetIsInhabitant Γ e1 (Types.Arrow A C) && Terms.GetIsInhabitant Γ e2 (Types.Arrow B C) && L == (Types.Either A B)
                                   | _ => false
                             | _ => false
 | _, Terms.Unit, Types.Unit => true
-| Γ, Terms.EmptyElim e1 _, _ => Terms.GetIsInhabitant Γ e1 Types.Empty
+| Γ, Terms.EmptyElim _ e1 _, _ => Terms.GetIsInhabitant Γ e1 Types.Empty
 | _, _, _ => false
 
 -- simple example of x: A ⊢ x : A
@@ -104,7 +104,7 @@ def Terms.GetIsInhabitant : Context → Terms → Types → Bool
 -- -- simple example of ⊢ λx:A.x : A → A
 
 -- def example2 : Context := Context.Empty
--- def example2Term : Terms := Terms.Abs "x" (Types.TypeVar "A") (Terms.Var "x" (Types.TypeVar "A"))
+-- def exampTypesle2Term : Terms := Terms.Abs "x" (Types.TypeVar "A") (Terms.Var "x" (Types.TypeVar "A"))
 
 -- #eval example2Term.toString
 -- #eval Terms.GetIsInhabitant example2 example2Term (Types.Arrow (Types.TypeVar "A") (Types.TypeVar "A"))
