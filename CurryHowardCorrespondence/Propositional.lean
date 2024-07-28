@@ -108,4 +108,4 @@ def Proof.Check : Proof → List Formula → Bool
 | Proof.ImplElim f p q, fs => match getFormula p with
   | Formula.Impl f1 f2 => Proof.Check p fs && Proof.Check q fs && f1 == getFormula q && f2 == f
   | _ => false
-| Proof.FalsumElim f p, fs => Proof.Check p fs || Formula.Falsum == getFormula p
+| Proof.FalsumElim f p, fs => Proof.Check p fs && Formula.Falsum == getFormula p
