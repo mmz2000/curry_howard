@@ -17,9 +17,15 @@ def TermsToFormula : Terms → Formula
 | Terms.Pair _ e1 e2 => Formula.And (TermsToFormula e1) (TermsToFormula e2)
 | Terms.Fst _ e => match e with
   | Terms.Pair _ e1 _ => TermsToFormula e1
+  | Terms.Var _ p => match p with
+    | Types.Touples t _ => TypesToFormula t
+    | _ => Formula.Falsum
   | _ => Formula.Falsum
 | Terms.Snd _ e => match e with
   | Terms.Pair _ _ e2 => TermsToFormula e2
+  | Terms.Var _ p => match p with
+    | Types.Touples _ t => TypesToFormula t
+    | _ => Formula.Falsum
   | _ => Formula.Falsum
 | Terms.Inl _ t1 t2 => Formula.Or (TypesToFormula t1) (TypesToFormula t2)
 | Terms.Inr _ t1 t2 => Formula.Or (TypesToFormula t1) (TypesToFormula t2)
