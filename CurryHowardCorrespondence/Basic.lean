@@ -1,1 +1,2 @@
-def hello := "world"
+import CurryHowardCorrespondence.Propositional
+import CurryHowardCorrespondence.TypedLambda
