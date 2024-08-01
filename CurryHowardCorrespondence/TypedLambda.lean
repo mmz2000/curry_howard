@@ -15,7 +15,7 @@ def EqualTypes : Types → Types → Bool
 | Types.Empty, Types.Empty => true
 | _, _ => false
 
-instance : BEq Types := ⟨EqualTypes⟩
+instance tbeq: BEq Types := ⟨EqualTypes⟩
 
 def Types.toString : Types → String
 | Types.TypeVar v => v.toString
@@ -48,7 +48,7 @@ def Term.eq : Term → Term → Bool
 | Term.Absurd t T, Term.Absurd t' T' => eq T T' && t == t'
 | _, _ => false
 
-instance: BEq Term := ⟨Term.eq⟩
+instance Tbeq: BEq Term := ⟨Term.eq⟩
 
 inductive Context : Type
 | Empty : Context

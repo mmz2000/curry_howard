@@ -16,7 +16,7 @@ def Formula.eq : Formula → Formula → Bool
 | _, _ => false
 
 -- BEq instance for Formula
-instance : BEq Formula := ⟨Formula.eq⟩
+instance fbeq : BEq Formula := ⟨Formula.eq⟩
 
 def Formula.toString : Formula → String
 | Formula.Var v => v.toString
