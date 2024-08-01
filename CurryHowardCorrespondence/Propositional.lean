@@ -1,5 +1,7 @@
+import CurryHowardCorrespondence.Varset
+
 inductive Formula : Type
-| Var : String → Formula
+| Var : propVarNames → Formula
 | And : Formula → Formula → Formula
 | Or : Formula → Formula → Formula
 | Impl : Formula → Formula → Formula
@@ -17,21 +19,38 @@ def Formula.eq : Formula → Formula → Bool
 instance : BEq Formula := ⟨Formula.eq⟩
 
 def Formula.toString : Formula → String
-| Formula.Var v => v
+| Formula.Var v => v.toString
 | Formula.And p q => "(" ++ toString p ++ " ∧ " ++ toString q ++ ")"
 | Formula.Or p q => "(" ++ toString p ++ " ∨ " ++ toString q ++ ")"
 | Formula.Impl p q => "(" ++ toString p ++ " → " ++ toString q ++ ")"
 | Formula.Falsum => "⊥"
 
+inductive Theory : Type
+| Empty : Theory
+| Cons : Formula → Theory → Theory
 
-inductive Provable : List Formula → Formula → Prop
+def Theory.contains : Theory → Formula → Bool
+| Theory.Empty, _ => false
+| Theory.Cons f Γ, f' => f == f' || contains Γ f'
+
+def Theory.concat : Theory → Theory → Theory
+| Theory.Empty, Γ => Γ
+| Theory.Cons f Γ, Γ' => Theory.Cons f (concat Γ Γ')
+
+def Theory.IsSub : Theory → Theory → Bool
+| Theory.Empty, _ => true
+| Theory.Cons f Γ, Γ' => Theory.contains Γ' f && IsSub Γ Γ'
+
+def Theory.BEq : Theory → Theory → Bool := λ Γ Γ' => Theory.IsSub Γ Γ' && Theory.IsSub Γ' Γ
+
+inductive Provable : Theory → Formula → Prop
 | Axiom {Γ f} (h : Γ.contains f) : Provable Γ f
-| AndIntor {Γ p q}  (h1 : Provable Γ p) (h2: Provable Γ q) : Provable Γ (Formula.And p q)
+| AndIntro {Γ p q}  (h1 : Provable Γ p) (h2: Provable Γ q) : Provable Γ (Formula.And p q)
 | AndElim1 {Γ p q} (h : Provable Γ (Formula.And p q)) : Provable Γ p
 | AndElim2 {Γ p q} (h : Provable Γ (Formula.And p q)) : Provable Γ q
 | OrIntro1 {Γ p q} (h : Provable Γ p) : Provable Γ (Formula.Or p q)
 | OrIntro2 {Γ p q} (h : Provable Γ q) : Provable Γ (Formula.Or p q)
-| OrElim {Γ p q r} (h1 : Provable Γ (Formula.Or p q)) (h2 : Provable (Γ.concat p) r) (h3 : Provable (Γ.concat q) r) : Provable Γ r
+| OrElim {Γ p q r} (h1 : Provable Γ (Formula.Or p q)) (h2 : Provable (Theory.Cons p Γ) r) (h3 : Provable (Theory.Cons q Γ) r) : Provable Γ r
 | ImpElim {Γ p q} (h1 : Provable Γ (Formula.Impl p q)) (h2 : Provable Γ q) : Provable Γ q
-| ImpIntro {Γ p q} (h : Provable (Γ.concat p) q) : Provable Γ (Formula.Impl p q)
+| ImpIntro {Γ p q} (h : Provable (Theory.Cons p Γ) q) : Provable Γ (Formula.Impl p q)
 | false_elim {Γ p} (h : Provable Γ Formula.Falsum) : Provable Γ p
