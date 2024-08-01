@@ -24,16 +24,33 @@ def Types.toString : Types → String
 | Types.Either t1 t2 => "(" ++ t1.toString ++ " + " ++ t2.toString ++ ")"
 | Types.Empty => "⊥"
 
+inductive VarName : Type
+| FromVarname: termVarNames->VarName
+| EitherVarname: VarName->VarName->VarName
+| ArrowVarname: VarName->VarName->VarName
+| TouplesVarname: VarName->VarName->VarName
+| EmptyVarname: VarName
+
+def VarName.eq : VarName -> VarName -> Bool
+| FromVarname v, FromVarname v' => v==v'
+| EitherVarname v1 v2, EitherVarname v1' v2' => VarName.eq v1 v1' && VarName.eq v2 v2'
+| ArrowVarname v1 v2, ArrowVarname v1' v2' => VarName.eq v1 v1' && VarName.eq v2 v2'
+| TouplesVarname v1 v2, TouplesVarname v1' v2' => VarName.eq v1 v1' && VarName.eq v2 v2'
+| EmptyVarname , EmptyVarname=> true
+| _, _ => false
+
+instance Vbeq: BEq VarName := ⟨VarName.eq⟩
+
 inductive Term : Type
-| Var : termVarNames → Term
-| Abs : termVarNames → Types → Term → Term
+| Var : VarName → Term
+| Abs : VarName → Types → Term → Term
 | App : Term → Term → Term
 | Pair : Term → Term → Term
 | Proj1 : Term → Term
 | Proj2 : Term → Term
 | Inl : Term → Types → Types → Term
 | Inr : Term → Types → Types → Term
-| Case : Term → termVarNames → Term → termVarNames → Term → Term
+| Case : Term → VarName → Term → VarName → Term → Term
 | Absurd : Types → Term → Term -- absurdity elimination
 
 def Term.eq : Term → Term → Bool
@@ -52,10 +69,10 @@ instance Tbeq: BEq Term := ⟨Term.eq⟩
 
 inductive Context : Type
 | Empty : Context
-| Cons : Term -> Types -> Context -> Context
+| Cons : VarName -> Types -> Context -> Context
 
 
-def Context.getType : Context → Term → Option Types
+def Context.getType : Context → VarName → Option Types
 | Empty ,_ => none
 | Cons x t Γ , y => if x == y then some t else getType Γ y
 
@@ -73,13 +90,13 @@ instance : BEq Context := ⟨Context.BEq⟩
 
 
 inductive Inhabitable : Context → Types → Term → Prop
-| Var {Γ x A} (h : Γ.getType x = some A) : Inhabitable Γ A x
-| Abs {Γ x A B t} (h : Inhabitable (Context.Cons (Term.Var x) A Γ) B t) : Inhabitable Γ (Types.Arrow A B) (Term.Abs x A t)
+| Var {Γ x A} (h : Γ.getType x = some A) : Inhabitable Γ A (Term.Var x)
+| Abs {Γ x A B t} (h : Inhabitable (Context.Cons x A Γ) B t) : Inhabitable Γ (Types.Arrow A B) (Term.Abs x A t)
 | App {Γ A B t1 t2} (h1 : Inhabitable Γ (Types.Arrow A B) t1) (h2 : Inhabitable Γ A t2) : Inhabitable Γ B (Term.App t1 t2)
 | Pair {Γ A B t1 t2} (h1 : Inhabitable Γ A t1) (h2 : Inhabitable Γ B t2) : Inhabitable Γ (Types.Touples A B) (Term.Pair t1 t2)
 | Proj1 {Γ A B t} (h : Inhabitable Γ (Types.Touples A B) t) : Inhabitable Γ A (Term.Proj1 t)
 | Proj2 {Γ A B t} (h : Inhabitable Γ (Types.Touples A B) t) : Inhabitable Γ B (Term.Proj2 t)
 | Inl {Γ A B t} (h : Inhabitable Γ A t) : Inhabitable Γ (Types.Either A B) (Term.Inl t A B)
 | Inr {Γ A B t} (h : Inhabitable Γ B t) : Inhabitable Γ (Types.Either A B) (Term.Inr t A B)
-| Case {Γ A B C t t1 t2 x y} (h1 : Inhabitable Γ (Types.Either A B) t) (h2 : Inhabitable (Context.Cons (Term.Var x) A Γ) C t1) (h3 : Inhabitable (Context.Cons (Term.Var y) B Γ) C t2) : Inhabitable Γ C (Term.Case t x t1 y t2)
+| Case {Γ A B C t t1 t2 x y} (h1 : Inhabitable Γ (Types.Either A B) t) (h2 : Inhabitable (Context.Cons x A Γ) C t1) (h3 : Inhabitable (Context.Cons y B Γ) C t2) : Inhabitable Γ C (Term.Case t x t1 y t2)
 | Absurd {Γ A t} (h : Inhabitable Γ Types.Empty t) : Inhabitable Γ A (Term.Absurd A t)
