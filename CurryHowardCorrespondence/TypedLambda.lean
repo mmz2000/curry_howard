@@ -72,13 +72,13 @@ inductive Context : Type
 | Cons : VarName -> Types -> Context -> Context
 
 
-def Context.getType : Context → VarName → Option Types
-| Empty ,_ => none
-| Cons x t Γ , y => if x == y then some t else getType Γ y
+def Context.getType : Context → VarName → Types
+| Empty ,_ => Types.Empty
+| Cons x t Γ , y => if x == y then t else getType Γ y
 
 def Context.IsSub: Context → Context → Bool
 | Empty, _ => true
-| Cons x t Γ, Γ' => Context.getType Γ x == some t && IsSub Γ Γ'
+| Cons x t Γ, Γ' => Context.getType Γ x == t && IsSub Γ Γ'
 
 def Context.concat : Context → Context → Context
 | Empty, Γ => Γ
@@ -90,7 +90,7 @@ instance : BEq Context := ⟨Context.BEq⟩
 
 
 inductive Inhabitable : Context → Types → Term → Prop
-| Var {Γ x A} (h : Γ.getType x = some A) : Inhabitable Γ A (Term.Var x)
+| Var {Γ x A} (h : Γ.getType x = A) : Inhabitable Γ A (Term.Var x)
 | Abs {Γ x A B t} (h : Inhabitable (Context.Cons x A Γ) B t) : Inhabitable Γ (Types.Arrow A B) (Term.Abs x A t)
 | App {Γ A B t1 t2} (h1 : Inhabitable Γ (Types.Arrow A B) t1) (h2 : Inhabitable Γ A t2) : Inhabitable Γ B (Term.App t1 t2)
 | Pair {Γ A B t1 t2} (h1 : Inhabitable Γ A t1) (h2 : Inhabitable Γ B t2) : Inhabitable Γ (Types.Touples A B) (Term.Pair t1 t2)
