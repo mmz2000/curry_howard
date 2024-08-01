@@ -531,3 +531,318 @@ theorem t2f_eq2:  ∀ {p q: Types}, (translateTypeToFormula p) == (translateType
   simp [translateTypeToFormula,fbeq,Formula.eq]
 | Types.Arrow _ _, Types.TypeVar _ =>by
   simp [translateTypeToFormula,fbeq,Formula.eq]
+
+def translateFormulaToVarname : Formula → VarName
+| Formula.Var v => VarName.FromVarname (termVarNames.fromPropVarNames v)
+| Formula.And p q => VarName.TouplesVarname (translateFormulaToVarname p) (translateFormulaToVarname q)
+| Formula.Or p q => VarName.EitherVarname (translateFormulaToVarname p) (translateFormulaToVarname q)
+| Formula.Impl p q => VarName.ArrowVarname (translateFormulaToVarname p) (translateFormulaToVarname q)
+| Formula.Falsum => VarName.EmptyVarname
+
+theorem f2v_eq: ∀ {p q: Formula}, p == q → (translateFormulaToVarname p) == (translateFormulaToVarname q)
+| Formula.Var p, Formula.Var q => by
+  intro h
+  simp [fbeq] at h
+  simp [Vbeq]
+  simp [VarName.eq]
+  simp [Formula.eq] at h
+  let h' := eq_pvname_eq_tname h
+  rw [h']
+| Formula.Var p, Formula.And _ _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Var p, Formula.Impl _ _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Var p, Formula.Or _ _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Var p, Formula.Falsum => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Falsum, Formula.Falsum  => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Falsum, Formula.Var _  => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Falsum, Formula.And _ _  => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Falsum, Formula.Or _ _  => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Falsum, Formula.Impl _ _  => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.And p q, Formula.And p' q' => by
+  intro h
+  simp [translateFormulaToVarname]
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+  let hr := h.right
+  let hl := h.left
+  simp [Vbeq]
+  simp [VarName.eq]
+  let l := f2v_eq hl
+  let r := f2v_eq hr
+  simp [Vbeq] at l
+  simp [Vbeq] at r
+  rw [l]
+  rw [r]
+  simp
+| Formula.And _ _, Formula.Var _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.And _ _, Formula.Or _ _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.And _ _, Formula.Impl _ _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.And _ _, Formula.Falsum => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Impl p q, Formula.Impl p' q' => by
+  intro h
+  simp [translateFormulaToVarname]
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+  let hr := h.right
+  let hl := h.left
+  simp [Vbeq]
+  simp [VarName.eq]
+  let l := f2v_eq hl
+  let r := f2v_eq hr
+  simp [Vbeq] at l
+  simp [Vbeq] at r
+  rw [l]
+  rw [r]
+  simp
+| Formula.Impl _ _, Formula.Var _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Impl _ _, Formula.Or _ _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Impl _ _, Formula.And _ _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Impl _ _, Formula.Falsum => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Or p q, Formula.Or p' q' => by
+  intro h
+  simp [translateFormulaToVarname]
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+  let hr := h.right
+  let hl := h.left
+  simp [Vbeq]
+  simp [VarName.eq]
+  let l := f2v_eq hl
+  let r := f2v_eq hr
+  simp [Vbeq] at l
+  simp [Vbeq] at r
+  rw [l]
+  rw [r]
+  simp
+| Formula.Or _ _, Formula.Var _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Or _ _, Formula.Impl _ _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Or _ _, Formula.And _ _ => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+| Formula.Or _ _, Formula.Falsum => by
+  intro h
+  simp [fbeq] at h
+  simp [Formula.eq] at h
+
+theorem f2v_eq2: ∀ {p q: Formula},(translateFormulaToVarname p) == (translateFormulaToVarname q) →  p == q
+| Formula.Var p, Formula.Var q => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+  simp [fbeq]
+  simp [Formula.eq]
+  simp [termvarbeq]
+  cases p
+  cases q
+  simp [termVarNames.fromPropVarNames,termVarNames.eq,provpvarbeq,propVarNames.eq]
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  cases q
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  rfl
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  cases q
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  rfl
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  cases q
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  simp [termVarNames.fromPropVarNames, termVarNames.eq]
+  rfl
+| Formula.Var _ , Formula.And _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Var _ , Formula.Or _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Var _ , Formula.Impl _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Var _ , Formula.Falsum => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Falsum , Formula.Falsum => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+  rfl
+| Formula.Falsum, Formula.And _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Falsum, Formula.Or _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Falsum, Formula.Impl _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Falsum, Formula.Var _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Impl p q, Formula.Impl p' q' => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+  intro h
+  simp [fbeq]
+  simp [Formula.eq]
+  let hl := h.left
+  let hr := h.right
+  let l:= f2v_eq2 hl
+  let r:= f2v_eq2 hr
+  simp [fbeq] at l
+  simp [fbeq] at r
+  rw [l]
+  rw [r]
+  simp
+| Formula.Impl _ _, Formula.And _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Impl _ _, Formula.Or _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Impl _ _, Formula.Falsum => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Impl _ _, Formula.Var _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.And p q, Formula.And p' q' => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+  intro h
+  simp [fbeq]
+  simp [Formula.eq]
+  let hl := h.left
+  let hr := h.right
+  let l:= f2v_eq2 hl
+  let r:= f2v_eq2 hr
+  simp [fbeq] at l
+  simp [fbeq] at r
+  rw [l]
+  rw [r]
+  simp
+| Formula.And _ _, Formula.Impl _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.And _ _, Formula.Or _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.And _ _, Formula.Falsum => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.And _ _, Formula.Var _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Or p q, Formula.Or p' q' => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+  intro h
+  simp [fbeq]
+  simp [Formula.eq]
+  let hl := h.left
+  let hr := h.right
+  let l:= f2v_eq2 hl
+  let r:= f2v_eq2 hr
+  simp [fbeq] at l
+  simp [fbeq] at r
+  rw [l]
+  rw [r]
+  simp
+| Formula.Or _ _, Formula.Impl _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Or _ _, Formula.And _ _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Or _ _, Formula.Falsum => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
+| Formula.Or _ _, Formula.Var _ => by
+  simp [translateFormulaToVarname]
+  simp [Vbeq]
+  simp [VarName.eq]
