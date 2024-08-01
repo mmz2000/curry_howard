@@ -846,3 +846,35 @@ theorem f2v_eq2: ∀ {p q: Formula},(translateFormulaToVarname p) == (translateF
   simp [translateFormulaToVarname]
   simp [Vbeq]
   simp [VarName.eq]
+
+def theoryToContext: Theory → Context
+| Theory.Empty => Context.Empty
+| Theory.Cons l Γ => Context.Cons (translateFormulaToVarname l) (translateFormulaToType l) (theoryToContext Γ)
+
+theorem t2c_cons: ∀ {t: Theory} {p: Formula}, t.contains p → (theoryToContext t).getType (translateFormulaToVarname p) == (translateFormulaToType p)
+| Theory.Empty, p => by
+  simp [Theory.contains]
+| Theory.Cons l Γ, p => by
+  intro h
+  simp [Theory.contains] at h
+  cases h with
+    | inl h' =>
+      simp [Context.getType]
+      let h1 := f2v_eq h'
+      rw [h1]
+      simp
+      let h2 := f2t_eq h'
+      rw [h2]
+    | inr h' =>
+      let r := t2c_cons h'
+      rw [theoryToContext]
+      simp [Context.getType]
+      split
+      case inr.inr k => {
+        exact r
+      }
+      case inr.inl k => {
+        let r:= f2v_eq2 k
+        let r:= f2t_eq r
+        exact r
+      }
