@@ -445,3 +445,89 @@ theorem t2f_eq: ∀ {p q: Types}, p == q → (translateTypeToFormula p) == (tran
 | Types.Arrow _ _, Types.Empty =>by
   simp [tbeq]
   simp [EqualTypes]
+
+theorem t2f_eq2:  ∀ {p q: Types}, (translateTypeToFormula p) == (translateTypeToFormula q) → p == q
+| Types.TypeVar v, Types.TypeVar v' => by
+  intro h
+  simp [translateTypeToFormula,fbeq,Formula.eq] at h
+  simp [tbeq,EqualTypes]
+  let h' := eq_pvname_eq_tvname2 h
+  rw [h']
+| Types.TypeVar _, Types.Touples _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.TypeVar _, Types.Either _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.TypeVar _, Types.Arrow _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.TypeVar _, Types.Empty =>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Empty, Types.Empty => by
+  simp [tbeq,EqualTypes]
+| Types.Empty, Types.Touples _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Empty, Types.Either _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Empty, Types.Arrow _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Empty, Types.TypeVar _ =>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Either p q, Types.Either p' q' => by
+  intro h
+  simp [translateTypeToFormula,fbeq,Formula.eq] at h
+  simp [tbeq,EqualTypes]
+  let hl := h.left
+  let hr := h.right
+  let l := t2f_eq2 hl
+  let r := t2f_eq2 hr
+  simp [tbeq] at l
+  simp [tbeq] at r
+  rw [l,r]
+  simp
+| Types.Either _ _, Types.Touples _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Either _ _, Types.Empty=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Either _ _, Types.Arrow _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Either _ _, Types.TypeVar _ =>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Touples p q, Types.Touples p' q' => by
+  intro h
+  simp [translateTypeToFormula,fbeq,Formula.eq] at h
+  simp [tbeq,EqualTypes]
+  let hl := h.left
+  let hr := h.right
+  let l := t2f_eq2 hl
+  let r := t2f_eq2 hr
+  simp [tbeq] at l
+  simp [tbeq] at r
+  rw [l,r]
+  simp
+| Types.Touples _ _, Types.Either _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Touples _ _, Types.Empty=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Touples _ _, Types.Arrow _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Touples _ _, Types.TypeVar _ =>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Arrow p q, Types.Arrow p' q' => by
+  intro h
+  simp [translateTypeToFormula,fbeq,Formula.eq] at h
+  simp [tbeq,EqualTypes]
+  let hl := h.left
+  let hr := h.right
+  let l := t2f_eq2 hl
+  let r := t2f_eq2 hr
+  simp [tbeq] at l
+  simp [tbeq] at r
+  rw [l,r]
+  simp
+| Types.Arrow _ _, Types.Either _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Arrow _ _, Types.Empty=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Arrow _ _, Types.Touples _ _=>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
+| Types.Arrow _ _, Types.TypeVar _ =>by
+  simp [translateTypeToFormula,fbeq,Formula.eq]
