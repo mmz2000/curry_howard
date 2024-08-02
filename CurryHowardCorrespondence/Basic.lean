@@ -851,6 +851,18 @@ def theoryToContext: Theory → Context
 | Theory.Empty => Context.Empty
 | Theory.Cons l Γ => Context.Cons (translateFormulaToVarname l) (translateFormulaToType l) (theoryToContext Γ)
 
+theorem some_t_eq: ∀ {p q: Types}, some p == some q → p == q := by
+  intro p q h
+  simp [tseq] at h
+  simp [eq_some_type] at h
+  rw [h]
+
+theorem t_eq_some: ∀ {p q: Types}, p == q → some p == some q  := by
+  intro p q h
+  simp [tseq]
+  simp [eq_some_type]
+  rw [h]
+
 theorem t2c_cons: ∀ {t: Theory} {p: Formula}, t.contains p → (theoryToContext t).getType (translateFormulaToVarname p) == (translateFormulaToType p)
 | Theory.Empty, p => by
   simp [Theory.contains]
@@ -864,7 +876,8 @@ theorem t2c_cons: ∀ {t: Theory} {p: Formula}, t.contains p → (theoryToContex
       rw [h1]
       simp
       let h2 := f2t_eq h'
-      rw [h2]
+      let h3 := t_eq_some h2
+      rw [h3]
     | inr h' =>
       let r := t2c_cons h'
       rw [theoryToContext]
@@ -878,3 +891,28 @@ theorem t2c_cons: ∀ {t: Theory} {p: Formula}, t.contains p → (theoryToContex
         let r:= f2t_eq r
         exact r
       }
+
+def contextToTheory: Context → Theory
+| Context.Empty => Theory.Empty
+| Context.Cons _ t Γ => Theory.Cons (translateTypeToFormula t) (contextToTheory Γ)
+
+theorem c2t_const: ∀ {c: Context} {v: VarName} {t: Types}, c.getType v == some t → (contextToTheory c).contains (translateTypeToFormula t)
+| Context.Empty,v ,t=> by
+  simp [Context.getType]
+  simp [tseq]
+  simp [eq_some_type]
+| Context.Cons v' t' c',v ,t => by
+  intro h
+  simp [Theory.contains]
+  simp [Context.getType] at h
+  split at h
+  case inl l =>{
+    let ht := t2f_eq (some_t_eq h)
+    rw [ht]
+    simp
+  }
+  case inr r => {
+    let ht := c2t_const h
+    rw [ht]
+    simp
+  }
