@@ -2,13 +2,71 @@
 -- Import modules here that should be built as part of the library.
 import «CurryHowardCorrespondence».Basic
 
-theorem EQRemainsAfterTranslationTheory: ∀ {Γ Γ': Theory}, Γ = Γ' → theoryToContext Γ = theoryToContext Γ' := by
-  intro Γ Γ' h
-  induction h
-  simp
-
-
-
+theorem soundness : ∀ {A: Term} {t: Types} {Γ:Context} , Inhabitable Γ t A -> Provable (contextToTheory Γ) (translateTypeToFormula t)
+| _, t, Γ, Inhabitable.Var h => by
+  let Γ' := contextToTheory Γ
+  let p := translateTypeToFormula t
+  let h' : Γ'.contains p := by
+    let h1 := c2t_const h
+    simp [Γ']
+    rw [h1]
+  let P:Provable Γ' p:=Provable.Axiom h'
+  simp [Γ'] at P
+  exact P
+| _, Types.Arrow t1 t2, Γ, Inhabitable.Abs h1 => by
+  let P1 := soundness h1
+  let Γ' := contextToTheory Γ
+  let P: Provable Γ' (Formula.Impl (translateTypeToFormula t1) (translateTypeToFormula t2)):= Provable.ImpIntro P1
+  simp [translateTypeToFormula]
+  exact P
+| _, t, Γ, Inhabitable.App h1 h2 => by
+  let P1 := soundness h1
+  let P2 := soundness h2
+  simp [translateTypeToFormula] at P1
+  let P:= Provable.ImpElim P1 P2
+  exact P
+| _, Types.Touples t1 t2, Γ, Inhabitable.Pair h1 h2 =>by
+  let P1:= soundness h1
+  let P2:= soundness h2
+  let P:= Provable.AndIntro P1 P2
+  simp [translateTypeToFormula]
+  exact P
+| _, t, Γ, Inhabitable.Proj1 h1 => by
+  let P1 := soundness h1
+  simp [translateTypeToFormula] at P1
+  let P := Provable.AndElim1 P1
+  exact P
+| _, t, Γ, Inhabitable.Proj2 h1 => by
+  let P1 := soundness h1
+  simp [translateTypeToFormula] at P1
+  let P := Provable.AndElim2 P1
+  exact P
+| _, Types.Either t1 t2, Γ, Inhabitable.Inl h1 => by
+  let P1 := soundness h1
+  let Γ' := contextToTheory Γ
+  let P: Provable Γ' (Formula.Or (translateTypeToFormula t1) (translateTypeToFormula t2)):= Provable.OrIntro1 P1
+  simp [translateTypeToFormula]
+  exact P
+| _, Types.Either t1 t2, Γ, Inhabitable.Inr h1 => by
+  let P1 := soundness h1
+  let Γ' := contextToTheory Γ
+  let P: Provable Γ' (Formula.Or (translateTypeToFormula t1) (translateTypeToFormula t2)):= Provable.OrIntro2 P1
+  simp [translateTypeToFormula]
+  exact P
+| _, t, Γ, Inhabitable.Case h1 h2 h3 => by
+  let P1 := soundness h1
+  let P2 := soundness h2
+  let P3 := soundness h3
+  simp [translateTypeToFormula] at P1
+  simp [contextToTheory] at P2
+  simp [contextToTheory] at P3
+  let P := Provable.OrElim P1 P2 P3
+  exact P
+| _, t, Γ, Inhabitable.Absurd h1 => by
+  let P1 := soundness h1
+  let Γ' := contextToTheory Γ
+  let P: Provable Γ' (translateTypeToFormula t):= Provable.false_elim P1
+  exact P
 
 theorem completeness : ∀ {p : Formula} {Γ: Theory}, (h : Provable Γ p) → ∃ (A: Term) , Inhabitable (theoryToContext Γ) (translateFormulaToType p) A
 | p, Γ, Provable.Axiom h => by
