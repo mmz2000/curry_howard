@@ -51,6 +51,9 @@ inductive Provable : Theory → Formula → Prop
 | OrIntro1 {Γ p q} (h : Provable Γ p) : Provable Γ (Formula.Or p q)
 | OrIntro2 {Γ p q} (h : Provable Γ q) : Provable Γ (Formula.Or p q)
 | OrElim {Γ p q r} (h1 : Provable Γ (Formula.Or p q)) (h2 : Provable (Theory.Cons p Γ) r) (h3 : Provable (Theory.Cons q Γ) r) : Provable Γ r
-| ImpElim {Γ p q} (h1 : Provable Γ (Formula.Impl p q)) (h2 : Provable Γ q) : Provable Γ q
+| ImpElim {Γ p q} (h1 : Provable Γ (Formula.Impl p q)) (h2 : Provable Γ p) : Provable Γ q
 | ImpIntro {Γ p q} (h : Provable (Theory.Cons p Γ) q) : Provable Γ (Formula.Impl p q)
 | false_elim {Γ p} (h : Provable Γ Formula.Falsum) : Provable Γ p
+
+def getProvableFormula : Provable Γ p -> Formula
+| _ => p

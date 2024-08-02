@@ -100,3 +100,6 @@ inductive Inhabitable : Context → Types → Term → Prop
 | Inr {Γ A B t} (h : Inhabitable Γ B t) : Inhabitable Γ (Types.Either A B) (Term.Inr t A B)
 | Case {Γ A B C t t1 t2 x y} (h1 : Inhabitable Γ (Types.Either A B) t) (h2 : Inhabitable (Context.Cons x A Γ) C t1) (h3 : Inhabitable (Context.Cons y B Γ) C t2) : Inhabitable Γ C (Term.Case t x t1 y t2)
 | Absurd {Γ A t} (h : Inhabitable Γ Types.Empty t) : Inhabitable Γ A (Term.Absurd A t)
+
+def getInhabitableTerm : Inhabitable Γ t T -> Term
+| _ => T
