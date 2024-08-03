@@ -3,15 +3,12 @@
 import «CurryHowardCorrespondence».Basic
 
 theorem soundness : ∀ {A: Term} {t: Types} {Γ:Context} , Inhabitable Γ t A -> Provable (contextToTheory Γ) (translateTypeToFormula t)
-| _, t, Γ, Inhabitable.Var h => by
+| _, t, (Context.Cons x _ Γ), Inhabitable.Var => by
   let Γ' := contextToTheory Γ
   let p := translateTypeToFormula t
-  let h' : Γ'.contains p := by
-    let h1 := c2t_const h
-    simp [Γ']
-    rw [h1]
-  let P:Provable Γ' p:=Provable.Axiom h'
-  simp [Γ'] at P
+  let P : Provable (Theory.Cons p Γ') p:= Provable.Axiom
+  simp [contextToTheory]
+  simp [p] at P
   exact P
 | _, Types.Arrow t1 t2, Γ, Inhabitable.Abs h1 => by
   let P1 := soundness h1
@@ -69,16 +66,13 @@ theorem soundness : ∀ {A: Term} {t: Types} {Γ:Context} , Inhabitable Γ t A -
   exact P
 
 theorem completeness : ∀ {p : Formula} {Γ: Theory}, (h : Provable Γ p) → ∃ (A: Term) , Inhabitable (theoryToContext Γ) (translateFormulaToType p) A
-| p, Γ, Provable.Axiom h => by
+| p, (Theory.Cons _ Γ), Provable.Axiom => by
   let Γ' := theoryToContext Γ
   let t := translateFormulaToType p
-  let p' := translateFormulaToVarname p
-  let h' : Γ'.getType p' == t:= by
-    let h1 := t2c_cons h
-    simp [Γ']
-    exact h1
+  let p' := p.toString
+
   let A := Term.Var p'
-  let inh := Inhabitable.Var h'
+  let inh : Inhabitable (Context.Cons p' t Γ') t A := Inhabitable.Var
   simp [Γ'] at inh
   exact ⟨A, inh⟩
 | Formula.And p q, Γ, Provable.AndIntro h1 h2  => by
@@ -104,7 +98,7 @@ theorem completeness : ∀ {p : Formula} {Γ: Theory}, (h : Provable Γ p) → �
   let ⟨A1, inh1⟩ := completeness h1
   simp [theoryToContext] at inh1
   let inh := Inhabitable.Abs inh1
-  let A := Term.Abs (translateFormulaToVarname p) (translateFormulaToType p) A1
+  let A := Term.Abs (p.toString) (translateFormulaToType p) A1
   exact ⟨A, inh⟩
 | p, Γ, Provable.false_elim h => by
   let ⟨A1, inh1⟩ := completeness h

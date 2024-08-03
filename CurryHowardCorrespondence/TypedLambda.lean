@@ -1,7 +1,6 @@
-import CurryHowardCorrespondence.Varset
 
 inductive Types : Type
-| TypeVar : typeVarNames → Types
+| TypeVar : String → Types
 | Arrow : Types → Types → Types
 | Touples : Types → Types → Types
 | Either : Types → Types → Types
@@ -18,39 +17,22 @@ def EqualTypes : Types → Types → Bool
 instance tbeq: BEq Types := ⟨EqualTypes⟩
 
 def Types.toString : Types → String
-| Types.TypeVar v => v.toString
+| Types.TypeVar v => v
 | Types.Arrow t1 t2 => "(" ++ t1.toString ++ " → " ++ t2.toString ++ ")"
 | Types.Touples t1 t2 => "(" ++ t1.toString ++ " × " ++ t2.toString ++ ")"
 | Types.Either t1 t2 => "(" ++ t1.toString ++ " + " ++ t2.toString ++ ")"
 | Types.Empty => "⊥"
 
-inductive VarName : Type
-| FromVarname: termVarNames->VarName
-| EitherVarname: VarName->VarName->VarName
-| ArrowVarname: VarName->VarName->VarName
-| TouplesVarname: VarName->VarName->VarName
-| EmptyVarname: VarName
-
-def VarName.eq : VarName -> VarName -> Bool
-| FromVarname v, FromVarname v' => v==v'
-| EitherVarname v1 v2, EitherVarname v1' v2' => VarName.eq v1 v1' && VarName.eq v2 v2'
-| ArrowVarname v1 v2, ArrowVarname v1' v2' => VarName.eq v1 v1' && VarName.eq v2 v2'
-| TouplesVarname v1 v2, TouplesVarname v1' v2' => VarName.eq v1 v1' && VarName.eq v2 v2'
-| EmptyVarname , EmptyVarname=> true
-| _, _ => false
-
-instance Vbeq: BEq VarName := ⟨VarName.eq⟩
-
 inductive Term : Type
-| Var : VarName → Term
-| Abs : VarName → Types → Term → Term
+| Var : String → Term
+| Abs : String → Types → Term → Term
 | App : Term → Term → Term
 | Pair : Term → Term → Term
 | Proj1 : Term → Term
 | Proj2 : Term → Term
 | Inl : Term → Types → Types → Term
 | Inr : Term → Types → Types → Term
-| Case : Term → VarName → Term → VarName → Term → Term
+| Case : Term → String → Term → String → Term → Term
 | Absurd : Types → Term → Term -- absurdity elimination
 
 def Term.eq : Term → Term → Bool
@@ -69,10 +51,10 @@ instance Tbeq: BEq Term := ⟨Term.eq⟩
 
 inductive Context : Type
 | Empty : Context
-| Cons : VarName -> Types -> Context -> Context
+| Cons : String -> Types -> Context -> Context
 
 
-def Context.getType : Context → VarName → Option Types
+def Context.getType : Context → String → Option Types
 | Empty ,_ => none
 | Cons x t Γ , y => if x == y then t else getType Γ y
 
@@ -98,7 +80,7 @@ instance : BEq Context := ⟨Context.BEq⟩
 
 
 inductive Inhabitable : Context → Types → Term → Prop
-| Var {Γ x A} (h : Γ.getType x == some A) : Inhabitable Γ A (Term.Var x)
+| Var {Γ x A} : Inhabitable (Context.Cons x A Γ) A (Term.Var x)
 | Abs {Γ x A B t} (h : Inhabitable (Context.Cons x A Γ) B t) : Inhabitable Γ (Types.Arrow A B) (Term.Abs x A t)
 | App {Γ A B t1 t2} (h1 : Inhabitable Γ (Types.Arrow A B) t1) (h2 : Inhabitable Γ A t2) : Inhabitable Γ B (Term.App t1 t2)
 | Pair {Γ A B t1 t2} (h1 : Inhabitable Γ A t1) (h2 : Inhabitable Γ B t2) : Inhabitable Γ (Types.Touples A B) (Term.Pair t1 t2)

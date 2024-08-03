@@ -1,7 +1,5 @@
-import CurryHowardCorrespondence.Varset
-
 inductive Formula : Type
-| Var : propVarNames → Formula
+| Var : String → Formula
 | And : Formula → Formula → Formula
 | Or : Formula → Formula → Formula
 | Impl : Formula → Formula → Formula
@@ -19,7 +17,7 @@ def Formula.eq : Formula → Formula → Bool
 instance fbeq : BEq Formula := ⟨Formula.eq⟩
 
 def Formula.toString : Formula → String
-| Formula.Var v => v.toString
+| Formula.Var v => v
 | Formula.And p q => "(" ++ toString p ++ " ∧ " ++ toString q ++ ")"
 | Formula.Or p q => "(" ++ toString p ++ " ∨ " ++ toString q ++ ")"
 | Formula.Impl p q => "(" ++ toString p ++ " → " ++ toString q ++ ")"
@@ -44,7 +42,7 @@ def Theory.IsSub : Theory → Theory → Bool
 def Theory.BEq : Theory → Theory → Bool := λ Γ Γ' => Theory.IsSub Γ Γ' && Theory.IsSub Γ' Γ
 
 inductive Provable : Theory → Formula → Prop
-| Axiom {Γ f} (h : Γ.contains f) : Provable Γ f
+| Axiom {Γ f} : Provable (Theory.Cons f Γ) f
 | AndIntro {Γ p q}  (h1 : Provable Γ p) (h2: Provable Γ q) : Provable Γ (Formula.And p q)
 | AndElim1 {Γ p q} (h : Provable Γ (Formula.And p q)) : Provable Γ p
 | AndElim2 {Γ p q} (h : Provable Γ (Formula.And p q)) : Provable Γ q
